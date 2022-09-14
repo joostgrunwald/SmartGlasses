@@ -90,7 +90,7 @@ while not StopFaceDetection:
             Shot = sct.grab(ScreenPart)
             img = Image.frombytes('RGB',(Shot.width,Shot.height),Shot.rgb)
             cv2.imshow('test', num.array(img))
-            fourthFrameRGB = num.array(img)
+            fourthFrame = num.array(img)
         
 
     # Only process half of frames
@@ -100,8 +100,8 @@ while not StopFaceDetection:
             # We resize the frame to 1/4 of its original size to make the face detection faster
             fourthFrame = cv2.resize(singleFrame, (0, 0), fx=0.25, fy=0.25)
 
-            # We have to convert the image from BGR to RGB color format
-            fourthFrameRGB = fourthFrame[:, :, ::-1]
+        # We have to convert the image from BGR to RGB color format
+        fourthFrameRGB = fourthFrame[:, :, ::-1]
 
         # Process the current frame for faces and face encodings
         FacesLocations = fr.face_locations(fourthFrameRGB)
