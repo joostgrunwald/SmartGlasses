@@ -10,6 +10,9 @@ import cv2
 # numpy is only used to get the closest person out of the the database of faces (only from a certain certainty)
 import numpy as num
 
+# time is only used to delay
+import time
+
 #! BRIEF EXPLANATION
 # This script is a simple face recognition script. It uses the face_recognition library to detect faces and compare them to a database of faces.
 # The database of faces is a folder with images of the people you want to recognize. The script will compare the faces in the database to the faces in the video footage.
@@ -25,6 +28,10 @@ StopFaceDetection = False
 # If true use the method where you get the closest person out of the database of faces
 # If false use the method were you get the first match out of the database of faces
 NearestMode = True
+
+# If true display a bounding box around the face and show video output
+# If false don't display a bounding box around the face and show text output
+VisualMode = False
 
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
@@ -46,74 +53,97 @@ known_face_names = [
     "Joost Grunwald"
 ]
 
-# Initialize some variables
+# Create variables to store the face locations and face encodings for the current frame of video
 FacesLocations = []
 FacesEncodings = []
-face_names = []
-process_this_frame = True
+
+# Create variables to store the face names and wether to process a frame or not
+NamesOfFaces = []
+toProcess = True
 
 #! INDEFINITE FACE RECOGNITION LOOP
-
 while not StopFaceDetection:
-    # Grab a single frame of video
-    ret, frame = video_capture.read()
 
-    # Only process every other frame of video to save time
-    if process_this_frame:
-        # Resize frame of video to 1/4 size for faster face recognition processing
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    # Get single frame from the video capture
+    ret, singleFrame = video_capture.read()
 
-        # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-        rgb_small_frame = small_frame[:, :, ::-1]
+    # Only process half of frames
+    if toProcess:
 
-        # Find all the faces and face encodings in the current frame of video
-        FacesLocations = fr.face_locations(rgb_small_frame)
-        FacesEncodings = fr.face_encodings(rgb_small_frame, FacesLocations)
+        # We resize the frame to 1/4 of its original size to make the face detection faster
+        fourthFrame = cv2.resize(singleFrame, (0, 0), fx=0.25, fy=0.25)
 
-        face_names = []
+        # We have to convert the image from BGR to RGB color format
+        fourthFrameRGB = fourthFrame[:, :, ::-1]
+
+        # Process the current frame for faces and face encodings
+        FacesLocations = fr.face_locations(fourthFrameRGB)
+        FacesEncodings = fr.face_encodings(fourthFrameRGB, FacesLocations)
+
+        NamesOfFaces = []
         for face_encoding in FacesEncodings:
-            # See if the face is a match for the known face(s)
+            # Check if the face matches a face in our database
             matches = fr.compare_faces(known_face_encodings, face_encoding)
             name = "Face not found"
 
             if NearestMode:
-                # Or instead, use the known face with the smallest distance to the new face
+                # From the (possible) matches, get the face nearest to the face we are looking at
                 FaceDistance = fr.face_distance(
                     known_face_encodings, face_encoding)
                 MatchInList = num.argmin(FaceDistance)
+
+                # If there is a proper match, save the name
                 if matches[MatchInList]:
                     name = known_face_names[MatchInList]
             elif True in matches:
+                # Get the first match in our face encoding database
                 first_match_index = matches.index(True)
+                # Get the name corresponding to this first match
                 name = known_face_names[first_match_index]
 
-            face_names.append(name)
+            NamesOfFaces.append(name)
 
-    process_this_frame = not process_this_frame
+    # Flip processing to skip half of frames
+    toProcess = not toProcess
 
-    # Display the results
-    for (top, right, bottom, left), name in zip(FacesLocations, face_names):
-        # Scale back up face locations since the frame we detected in was scaled to 1/4 size
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
+    if VisualMode:
+        # Display the results
+        for (t, r, b, l), FoundName in zip(FacesLocations, NamesOfFaces):
 
-        # Draw a box around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            # Multiply dimensions by 4 because the frame was resized to 1/4 size
+            t = t * 4
+            r = r * 4
+            b = b * 4
+            l = l * 4
 
-        # Draw a label with a name below the face
-        cv2.rectangle(frame, (left, bottom - 35),
-                      (right, bottom), (0, 0, 255), cv2.FILLED)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6),
-                    font, 1.0, (255, 255, 255), 1)
+            # We create a bounding box and draw it
+            cv2.rectangle(singleFrame, (l, t), (r, b), (0, 0, 255), 2)
 
-    # Display the resulting image
-    cv2.imshow('Video', frame)
+            # We create a place to put the name
+            cv2.rectangle(singleFrame, (l, b - 35),
+                          (r, b), (0, 0, 255), cv2.FILLED)
 
-    # Hit 'q' on the keyboard to quit!
+            # We put the name in the place
+            myFont = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(singleFrame, FoundName, (l + 6, b - 6),
+                        myFont, 1.0, (255, 255, 255), 1)
+
+        # Display the resulting image
+        cv2.imshow('Video', singleFrame)
+
+    else:
+        for (t, r, b, l), FoundName in zip(FacesLocations, NamesOfFaces):
+            # Show the person found
+            print(FoundName)
+
+            # TODO: trigger text on wemos display here
+
+            # Sleep to not be too speedy
+            time.sleep(1)
+
+    # Catch q and break if pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        StopFaceDetection = True
         break
 
 # Release handle to the webcam
