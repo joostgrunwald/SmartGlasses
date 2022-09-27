@@ -9,7 +9,7 @@ def getLocation():
     options = Options()
     options.add_argument("--use-fake-ui-for-media-stream")
     timeout = 20
-    driver = webdriver.Chrome(executable_path = './chromedriver.exe', chrome_options=options)
+    driver = webdriver.Chrome(executable_path = './chromedriver.exe', chrome_options=options) #currently using 105.0.5195.52/
     driver.get("https://mycurrentlocation.net/")
     wait = WebDriverWait(driver, timeout)
     time.sleep(3)
