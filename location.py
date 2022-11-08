@@ -26,7 +26,7 @@ def getLocation():
         # Create a timer that calls the script every 5 minutes
         timer = datetime.datetime.now()
         print(timer)
-        timer = timer + datetime.timedelta(minutes=5)
+        timer = timer + datetime.timedelta(minutes=3)
         print(timer)
         while(datetime.datetime.now() < timer):
             i = 3
@@ -42,7 +42,7 @@ def getLocation():
         print(distance)
         if (distance > maxDistance):
             print("oma is weg")
-            RecentlyCalled = True
+            #RecentlyCalled = True
             # bericht sturen
             message = client.messages \
                 .create(
@@ -52,6 +52,7 @@ def getLocation():
                 )
             # iets met counterhttps://mycurrentlocation.net/
         else:
+            RecentlyCalled = True
             print("oma is thuis")
             message = client.messages \
                 .create(
@@ -67,7 +68,7 @@ def mainfunc():
     while True:
         #call once every 30 minutes
         currentTime = datetime.datetime.now()
-        currentTime = currentTime + datetime.timedelta(minutes=30)
+        currentTime = currentTime + datetime.timedelta(minutes=15)
         while datetime.datetime.now() < currentTime:
             getLocation()
 
