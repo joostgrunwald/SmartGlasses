@@ -7,6 +7,7 @@ import geopy.distance
 import smtplib
 import time
 import datetime
+import geocoder
 
 import os
 from twilio.rest import Client
@@ -19,47 +20,23 @@ away = False
 maxDistance = 4
 
 def getLocation():
-    sender = 'omaiskwijt@gmail.com'
-    receivers = ['omaiskwijt@gmail.com']
-
-    message = """From: From Person <omaiskwijt@gmail.com>
-    To: To Person <omaiskwijt@gmail.com>
-    Subject: Missing oma
-
-    Oma is missing, please help find her.
-    """
-
+    
     RecentlyCalled = False
     while not RecentlyCalled:
         # Create a timer that calls the script every 5 minutes
         timer = datetime.datetime.now()
         print(timer)
-        timer = timer + datetime.timedelta(minutes=0.5)
+        timer = timer + datetime.timedelta(minutes=5)
         print(timer)
         while(datetime.datetime.now() < timer):
             i = 3
-            #we wait
-        print("we zijn er")
-        options = Options()
-        options.add_argument("--use-fake-ui-for-media-stream")
-        timeout = 20
-        driver = webdriver.Chrome(
-        executable_path='./chromedriver.exe', chrome_options=options)
-        driver.get("https://mycurrentlocation.net/")
-        wait = WebDriverWait(driver, timeout)
-        time.sleep(3)
-        longitude = driver.find_elements("xpath", '//*[@id="longitude"]')
-        longitude = [x.text for x in longitude]
-        longitude = str(longitude[0])
-        latitude = driver.find_elements("xpath", '//*[@id="latitude"]')
-        latitude = [x.text for x in latitude]
-        latitude = str(latitude[0])
-        driver.quit()
 
+        #get current latitude and longitude
+        g = geocoder.ip('me')
         latitude_home = '51.82546'
         longitude_home = '5.86894'
         coords_home = (latitude_home, longitude_home)
-        coords_cur = (latitude, longitude)
+        coords_cur = g.latlng
         print(coords_cur)
         distance = geopy.distance.geodesic(coords_home, coords_cur).km
         print(distance)
@@ -69,7 +46,7 @@ def getLocation():
             # bericht sturen
             message = client.messages \
                 .create(
-                    body='Oma is kwijt',
+                    body='Oma is kwijt and is at the following coordinates: ' + " ".join(coords_home),
                     from_='+19706327688',
                     to='+31613361986'
                 )
