@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Medicines{% endblock %} 
+{% block content %} 
+<ul>
+    {% for medicines in preScript %}
+        <li>{{ medicines.0 }} {{medicines.1}} times</li>
+    {% endfor %}
+    {% for time in times %} 
+        <li>Take at time {{ time }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
