@@ -1,0 +1,12 @@
+{% extends 'base.html' %} 
+
+{% block title %}Location page{% endblock %} 
+
+{% block content %}
+<p>{{ coords_cur }} : {{ distance }}</p>
+{% if distance > 4 %}
+<h1><b style='color:red;'>Oma is gone</b></h1>
+{% else %} 
+Oma is safe
+{% endif %} 
+{% endblock %}
