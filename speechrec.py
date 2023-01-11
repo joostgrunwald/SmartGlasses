@@ -7,12 +7,72 @@ from msilib.schema import tables
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 import time
+
+from geopy.geocoders import Nominatim
+import geopy.distance
+import datetime
+import geocoder
+
+import os
+from twilio.rest import Client
+
+# authenticate twilio client
+account_sid = 'ACb63a0a30a2dd08646e0b5397539a29ce'
+auth_token = '6c4249ef5a6007c8f18720d69b2e7105'
+client = Client(account_sid, auth_token)
+
+away = False
+maxDistance = 4
 
 #?#################
 #? Main Functions #
 #?#################
 
+def getLocation():  
+    RecentlyCalled = False
+    latitude_home = '51.82546'
+    if not RecentlyCalled:
+        # Create a timer that calls the script every 5 minutes
+        timer = datetime.datetime.now()
+        print(timer)
+        timer = timer + datetime.timedelta(minutes=3)
+        print(timer)
+
+        #get current latitude and longitude
+        g = geocoder.ip('me')
+        coords_home = latitude_home, '5.86894'
+        coords_cur = g.latlng
+        print(coords_cur)
+        distance = geopy.distance.geodesic(coords_home, coords_cur).km
+        print(distance)
+        if (distance > maxDistance):
+            print("oma is weg")
+            #RecentlyCalled = True
+            # bericht sturen
+            # message = client.messages \
+            #   .create(
+            #        body='Oma is kwijt and is at the following coordinates: ' + " ".join(coords_home),
+            #        from_='+19706327688',
+            #        to='+31613361986'
+            #    )
+            # iets met counterhttps://mycurrentlocation.net/
+        else:
+            RecentlyCalled = True
+            print("oma is thuis")
+            message = client.messages \
+                .create(
+                    body='Oma is thuis',
+                    from_='+19706327688',
+                    to='+31613361986'
+                )
+            # bericht sturen
+            # counter resetten
+
+        #set now to the current time + 15 minutes
+        global now
+        now = datetime.datetime.now() + datetime.timedelta(minutes=15)
 
 def disableWarnings():
     """ Disables the warnings that are displayed by python """
@@ -34,8 +94,63 @@ def asciiArt():
     ''')
 
 
-medicatietuple = [("10:24", "morfine"), ("12:00", "ibuprofen"),
-                  ("16:00", "diameazepin"), ("20:00", "ketamine")]
+medicatietuple = [("10:00", "You need to take your morphine"),
+                  ("10:10", "Second reminder of morphine take in."),
+                  ("12:00", "You need to take your ibuprofine"),
+                  ("12:10", "Second reminder of ibuprofine takein"),
+                  ("16:00", "You need to take your diameazepin"),
+                  ("16:10", "Second reminder of diameazepin take in."),
+                  ("20:00", "You need to take your paracetamol."),
+                  ("20:10", "Second reminder of paracetamol take in.")]
+timedmessages = [("09:00", "Good morning, how are you feeling today?"),
+                 ("12:00", "Good afternoon, time flies when you are having fun doesn't it?"),
+                 ("16:00", "Good evening, how are your dinner plans?"),
+                 ("22:00", "Good night, I'm already looking forward to another day?")]
+
+agenda = [
+    # tuesday and friday bathing session
+    ("Tuesday", "10:00", "a Bathing session is planned in 30 minutes"),
+    ("Friday", "10:00", "a Bathing session is planned in 30 minutes"),
+    # monday and thursday cleaning session
+    ("Monday", "12:00", "a Cleaning session is planned in 30 minutes"),
+    ("Thursday", "12:00", "a Cleaning session is planned in 30 minutes"),
+    # wednesday family meeting
+    ("Wednesday", "16:00", "a Family meeting is planned in 30 minutes"),
+]
+
+def agendareminder():
+    """ Checks if it is time for an agenda item and if so, it will remind you """
+    # get the current time
+    currentTime = time.strftime("%H:%M")
+    # get the current day
+    currentDay = time.strftime("%A")
+    # loop through the tuple
+    for i in agenda:
+        # check if the current time is equal to the time in the tuple
+        if currentTime == i[1] and currentDay == i[0]:
+            # print the medication
+            # switch tab
+            browser.switch_to.window(browser.window_handles[1])
+
+            time.sleep(1)
+
+            # input text in here "Hello, my name is Jarvis, I am an Artificial Intelligence trained to support you."
+            # <textarea cols="50" placeholder="Type some English text here" rows="7" id="text-area" class="bx--text-area text-box" spellcheck="false"></textarea>
+            # empty the text area
+            browser.find_element_by_id("text-area").clear()
+            browser.find_element_by_id("text-area").send_keys(i[2])
+
+            time.sleep(0.6)
+
+            # click this button
+            # <button id="btn" tabindex="0" class="play-btn bx--btn bx--btn--field bx--btn--primary" type="button"><svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" class="nav-btn-icon"><path d="M7,28a1,1,0,0,1-1-1V5a1,1,0,0,1,.5-.87,1,1,0,0,1,1,0l19,11a1,1,0,0,1,0,1.74l-19,11A1,1,0,0,1,7,28ZM8,6.73V25.27L24,16Z"></path></svg></button>
+            browser.find_element_by_id("btn").click()
+
+            # wait for the audio to be generated
+            time.sleep(15)
+
+            # switch tab
+            browser.switch_to.window(browser.window_handles[0])
 
 
 def medicatiereminder():
@@ -44,6 +159,40 @@ def medicatiereminder():
     currentTime = time.strftime("%H:%M")
     # loop through the tuple
     for i in medicatietuple:
+        # check if the current time is equal to the time in the tuple
+        if currentTime == i[0]:
+            # print the medication
+            # switch tab
+            browser.switch_to.window(browser.window_handles[1])
+
+            time.sleep(1)
+
+            # input text in here "Hello, my name is Jarvis, I am an Artificial Intelligence trained to support you."
+            # <textarea cols="50" placeholder="Type some English text here" rows="7" id="text-area" class="bx--text-area text-box" spellcheck="false"></textarea>
+            # empty the text area
+            browser.find_element_by_id("text-area").clear()
+            browser.find_element_by_id("text-area").send_keys(i[1])
+
+            time.sleep(0.6)
+
+            # click this button
+            # <button id="btn" tabindex="0" class="play-btn bx--btn bx--btn--field bx--btn--primary" type="button"><svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" class="nav-btn-icon"><path d="M7,28a1,1,0,0,1-1-1V5a1,1,0,0,1,.5-.87,1,1,0,0,1,1,0l19,11a1,1,0,0,1,0,1.74l-19,11A1,1,0,0,1,7,28ZM8,6.73V25.27L24,16Z"></path></svg></button>
+            browser.find_element_by_id("btn").click()
+
+            # wait for the audio to be generated
+            time.sleep(15)
+
+            # switch tab
+            browser.switch_to.window(browser.window_handles[0])
+
+
+def timedmessagesfun():
+    """ Checks if it is time for a timed message and if so, it will remind you """
+    # get the current time
+    currentTime = time.strftime("%H:%M")
+    global timedmessages
+    # loop through the tuple
+    for i in timedmessages:
         # check if the current time is equal to the time in the tuple
         if currentTime == i[0]:
             # print the medication
@@ -220,19 +369,31 @@ def handleQuestions(question):
     elif question in ["what is my name", "who am i", "who am I", "what am I called"]:
         return "Your name is " + name
     elif question in ["what is my age", "how old am I", "how old am i"]:
-        return "You are" + str(age) + "years old"
+        return "You are " + str(age) + "years old"
     elif question in ["what is my city", "where do I live", "where do i live", "where am I from"]:
         return "You live in " + city + " in " + country
     elif question in ["what is my dementia stage", "what is my dementia", "what is my stage of dementia"]:
         return "Your dementia stage is " + dementiastage
+    elif question in ["i am lost","I am lost"]:
+        message = client.messages \
+                .create(
+                    body='Oma is kwijt!!',
+                    from_='+19706327688',
+                    to='+31613361986'
+                )
+        return "Don't worry caregivers are on their way"
 
     # Opportunities to use cool quotes
     elif question in ["what is the meaning of life", "what is the answer of life", "what is the answer to life"]:
         return "42"
 
     # cool movie quotes
-    elif question in ["does every man die?"]:
+    elif question in ["does every man die?", "does every man die"]:
         return "Every man dies, but not every man really lives."
+    elif question in ["hello there"]:
+        return "General Kenobi!"
+    elif question in ["e2"]:
+        return "e4"
 
     # Personality questions
     if question in ["what is your name", "what's your name", "who are you", "what are you called", "do you have a name", "your name"]:
@@ -296,6 +457,8 @@ def handleQuestions(question):
         return "I like 12:00 the most"
     elif question in ["what is your favorite number", "what is your favorite number of all time"]:
         return "I like 7 the most"
+    elif question in ["who is the goat"]:
+        return "Lionel Messi"
 
     # stop questions
     elif question in ["stop", "quit", "exit", "goodbye", "bye", "see you later", "see you later alligator", "see you later crocodile", "see you later alligator in a while crocodile"]:
@@ -314,12 +477,15 @@ asciiArt()
 disableWarnings()
 first = True
 
+#get current time
+now = datetime.datetime.now()
+
 # set up the options for the browser
 chrome_options = Options()
 chrome_options.add_argument("--use-fake-ui-for-media-stream")
 
 # open a chrome browser with selected options
-browser = webdriver.Chrome(chrome_options=chrome_options)
+browser = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
 
 # open extra tabs
 browser.execute_script("window.open('');")
@@ -343,6 +509,8 @@ browser.find_element_by_id("downshift-1-item-0").click()
 
 # click voice button
 browser.find_element_by_id("voice").click()
+
+time.sleep(0.6)
 
 # select the option Micheal (Expressive)
 # <div class="bx--list-box__menu-item" title="Michael (Expressive)" role="option" aria-selected="false" id="downshift-2-item-3"><div class="bx--list-box__menu-item__option">Michael (Expressive)</div></div>
@@ -385,10 +553,10 @@ WebDriverWait(browser, 10).until(
 
 # <input class="gLFyf gsfi" jsaction="paste:puy29d; mouseenter:MJEKMe; mouseleave:iFHZnf;" maxlength="2048" name="q" type="text" aria-autocomplete="both" aria-haspopup="false" autocapitalize="off" autocomplete="off" autocorrect="off" role="combobox" spellcheck="false" value="what is the weather today" aria-label="Search" data-ved="0ahUKEwjRnt2fuun6AhWZs6QKHZQHAyAQ39UDCAs">
 # get value when this appears
-WebDriverWait(browser, 10).until(
-    lambda browser: browser.find_element_by_xpath(
-        "//input[@class='gLFyf gsfi']")
-)
+# WebDriverWait(browser, 10).until(
+#    lambda browser: browser.find_element_by_xpath(
+#        "//input[@class='gLFyf gsfi']")
+#)
 
 try:
     # wait until currenturl contains =
@@ -415,12 +583,18 @@ except:
     i = 5
     # Case: you never said anything
 
-
 while True:
     # get following button
     time.sleep(11)
 
+    currentTime = datetime.datetime.now()
+
+    if currentTime > now:
+        getLocation()
+
     medicatiereminder()
+    agendareminder()
+    timedmessagesfun()
 
     browser.get('https://www.google.com/')
 
@@ -433,10 +607,10 @@ while True:
     try:
         # <input class="gLFyf gsfi" jsaction="paste:puy29d; mouseenter:MJEKMe; mouseleave:iFHZnf;" maxlength="2048" name="q" type="text" aria-autocomplete="both" aria-haspopup="false" autocapitalize="off" autocomplete="off" autocorrect="off" role="combobox" spellcheck="false" value="what is the weather today" aria-label="Search" data-ved="0ahUKEwjRnt2fuun6AhWZs6QKHZQHAyAQ39UDCAs">
         # get value when this appears
-        WebDriverWait(browser, 10).until(
-            lambda browser: browser.find_element_by_xpath(
-                "//input[@class='gLFyf gsfi']")
-        )
+        #WebDriverWait(browser, 10).until(
+        #    lambda browser: browser.find_element_by_xpath(
+        #        "//input[@class='gLFyf gsfi']")
+        #)
 
         # wait until currenturl contains =
         WebDriverWait(browser, 10).until(
@@ -464,6 +638,7 @@ while True:
         if answer == "Goodbye":
             break
         elif answer != "No output":
+            browser.get('https://www.google.com/')
 
             # switch tab
             browser.switch_to.window(browser.window_handles[1])
