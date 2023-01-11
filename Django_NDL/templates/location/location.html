@@ -1,12 +1,52 @@
-{% extends 'base.html' %} 
-
-{% block title %}Location page{% endblock %} 
+{% extends 'location/base.html' %} 
 
 {% block content %}
-<p>{{ coords_cur }} : {{ distance }}</p>
-{% if distance > 4 %}
-<h1><b style='color:red;'>Oma is gone</b></h1>
-{% else %} 
-Oma is safe
-{% endif %} 
-{% endblock %}
+{% load static %}
+<script>
+    $(document).ready(function(){
+        $.ajax({
+            url: "{% url 'location:mydata'%}",
+            method: 'GET',
+            success: function(data){
+                console.log(data);
+                initMap(data);
+            }
+        });
+    });
+
+    function initMap(data) {
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 4,
+            center: { lat: 51.5944418, lng: 4.7492914 },
+        });
+        const markers = data?.map((i) => {
+            const marker = new google.maps.Marker({
+                position: { lat: parseFloat(i[0]), lng: parseFloat(i[1])},
+                label: i[2],
+                map: map,
+            })
+        });
+    }
+</script>
+
+<div class="pageholder">
+    <div class="titleholder"> 
+        {% if distance > 4 %}
+            <h1>Oma is gone</h1>
+        {% else %}  
+            <h1>Oma is close to home</h1>
+        {% endif %}
+        <a href="{% url 'login:homepage'%}" class="title2 mr-4"><i class="fas fa-home mr-2"></i> Back to home </a>
+    </div>
+
+    <div class="linkholder">
+        <div class="mapholder">
+            <div id="map"></div>
+            <script
+            src="https://maps.googleapis.com/maps/api/js?key={{key}}&callback=initMap&v=weekly"
+            defer
+            ></script>
+        </div>
+    </div>
+</div>
+{% endblock content %}

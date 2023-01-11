@@ -23,7 +23,4 @@ urlpatterns = [
     path('', include('login.urls')),
     path('', include('location.urls')),
     path('', include('medicines.urls')),
-    #path("", views.homepage, name="homepage"),
-    #path("login", views.login_request, name="login"),
-    #path('login/', include(('login.urls', 'login'),namespace='login')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

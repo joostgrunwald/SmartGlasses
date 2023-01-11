@@ -1,0 +1,25 @@
+{% extends 'medicines/base.html' %}
+{% block content %} 
+    <h1 class = "text">Delete Medicine</h1>
+    <p class = "text">Are you sure you want to delete the following medicine</p>
+    <div class = "content">
+    <table>
+        <tr>
+            <th>Name</th>
+            <td>{{ medicine.name }}</td>
+        </tr>
+        <tr>
+            <th>Dose</th>
+            <td>{{ medicine.dose }}</td>
+        </tr>
+        <tr>
+            <th>Times</th>
+            <td>{{ medicine.times }}</td>
+        </tr>
+    </table>
+    <form method ="post" action ="{% url 'medicines:delete' medicine.pk %}">
+        {% csrf_token %} 
+        <button class = "button-23" type="submit">Delete</button>
+    </form>
+</div>
+{% endblock %}

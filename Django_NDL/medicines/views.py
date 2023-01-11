@@ -1,13 +1,7 @@
 from django.shortcuts import render
-from django.contrib.gis.geoip2 import GeoIP2
-import geopy.distance
 from medicines.forms import MedicineForm
-from django.shortcuts import render, HttpResponse, redirect
+from django.shortcuts import render, redirect
 from .models import Medicine
-from django.views.generic import ListView
-from django_tables2 import SingleTableView
-from .tables import MedicineTable
-# Create your views here.
 
 def addView(request):
     args = {}
@@ -15,19 +9,31 @@ def addView(request):
         form = MedicineForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('medicines:medicines')
+            return redirect('medicines:medicine_list')
     else:
         form = MedicineForm()
     args['form'] = form
     return render(request, 'medicines/add.html', args)
 
-'''class medicinesView(ListView):
-    model = Medicine
-    template_name = 'medicines/medicines.html'
-    #medicineList = Medicine.objects.all()
-    #return render(request, 'medicines/medicines.html', {'medicineList' : medicineList})'''
 
-class MedicineListView(SingleTableView):
-    model = Medicine
-    table_class = MedicineTable
-    template_name = 'medicines/medicines.html'
+def medicine_list(request):
+    medicines = Medicine.objects.all()
+    return render(request,'medicines/medicines.html', {'medicines':medicines})
+
+def medicine_edit(request, pk):
+    medicine = Medicine.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = MedicineForm(request.POST, instance=medicine)
+        if form.is_valid():
+            form.save()
+            return redirect('medicines:medicine_list')
+    else:
+        form = MedicineForm(instance=medicine)
+    return render(request, 'medicines/medicine_edit.html', {'form': form, 'medicine': medicine})
+
+def medicine_delete(request, pk):
+    medicine = Medicine.objects.get(pk = pk)
+    if request.method == 'POST':
+        medicine.delete()
+        return redirect('medicines:medicine_list')
+    return render(request, 'medicines/medicine_delete.html', {'medicine':medicine})

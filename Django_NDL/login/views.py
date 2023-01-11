@@ -1,11 +1,9 @@
-from django.shortcuts import render, HttpResponse, redirect
-from django.views.generic import TemplateView
+from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 
 def login_request(request):
-    #args = {}
     if request.method == "POST":
         form = AuthenticationForm(request, data = request.POST)
         if (form.is_valid()):
@@ -21,7 +19,6 @@ def login_request(request):
         else:
             messages.error(request, "Invalid username or password")
     form = AuthenticationForm()
-    #args['form'] = form
     return render(request = request, template_name = "login/login.html", context={"login_form":form})
     
 def logout_request(request):

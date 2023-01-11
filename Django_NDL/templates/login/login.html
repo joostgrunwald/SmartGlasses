@@ -1,15 +1,17 @@
-{% extends 'base.html' %} 
+{% extends 'login/base.html' %} 
 
 {% block content %}
 
 {% load crispy_forms_tags %}
-<div class="container py-5">
+<div class="login">
+    <div class = "form">
     <h1>Login</h1>
     <form method="POST">
         {% csrf_token %}
         {{ login_form|crispy }}
-        <button class="btn btn-primary" type="submit">Login</button>
+        <button class="button-23" type="submit">Login</button>
     </form>
     <p class="text-center"> Don't have an account? Contact SmartGlasses on ....</p>
+</div>
 </div>
 {% endblock %}
