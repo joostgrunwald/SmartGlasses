@@ -78,6 +78,9 @@ engine.setProperty('rate', 200)
 engine.setProperty(
     'voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0')
 
+#! Google search settings
+from googlesearch import search
+
 ####################################
 # TODO: CHANGE THIS TO CUSTOM BEGIN#
 ####################################
