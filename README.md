@@ -1,2 +1,2 @@
-# SmartGlasses
-Smartglasses made with ESP32
+# Dementia Helmet
+Dementia helmet made with ESP32 for NDL project
